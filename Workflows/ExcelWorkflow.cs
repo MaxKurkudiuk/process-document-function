@@ -53,8 +53,8 @@ public class ExcelWorkflow(
         throw new Exception($"Fail to find any sheets with name starts with: {OtherDataConfig.VacationIllnessSheetKey}");
       _excelUpdater.MoveSheetToTheEnd(workbookPart, vacationIllnessStatsSheetName);
       _excelUpdater.MoveSheetToTheEnd(workbookPart, vacationIllnessSheetName);
-      _vacationIllnesProcess.Execute(vacationIllnessSheetName);
-      _otherSheetsProcess.Execute(otherSheetNames);
+      _vacationIllnesProcess.Execute(workbookPart, vacationIllnessSheetName, isFormattingOnly);
+      _otherSheetsProcess.Execute(workbookPart, otherSheetNames, isFormattingOnly);
 
       workbookPart.Workbook.Save();
       doc.Save();
