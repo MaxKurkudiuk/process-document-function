@@ -10,4 +10,15 @@ public static class SheetSizeConfig
   public const double TimeSpentColumnWidth = 12.7;
   public const double CommentColumnWidth = 60.7;
   public const double ProjectColumnWidth = 26.4;
+
+  public static double[] GetColumnsWidthInReqOrder() => [
+      KeyColumnWidth,
+      TitleColumnWidth,
+      DateColumnWidth,
+      UserNameColumnWidth,
+      TaskTypeColumnWidth,
+      TimeSpentColumnWidth,
+      CommentColumnWidth,
+      ProjectColumnWidth
+    ];
 }
