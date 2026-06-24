@@ -26,7 +26,7 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
     var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
     if (sheet == null) return;
 
-    var headers = new string[3] { OtherDataConfig.TitleColumnName, OtherDataConfig.DateColumnName, OtherDataConfig.UserNameColumnname };
+    var headers = new string[3] { OtherDataConfig.TitleColumnName, OtherDataConfig.DateColumnName, OtherDataConfig.UserNameColumnName };
     sheetInfo.HeaderIndex = ExcelReader.SearchForHeaders(headers, sheetInfo, false, false, out List<string> missingHeaders);
     if (missingHeaders.Count != 0)
       throw new Exception($"There are missing required headers on the sheet {sheetInfo.SheetName} : {string.Join(", ", missingHeaders)}");
