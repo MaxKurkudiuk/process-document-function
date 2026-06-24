@@ -41,10 +41,14 @@ public class ExcelWorkflow(
       if (!isValid)
         throw new Exception("Input file is not valid");
 
-      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesDStatsOldName, AdminSheetNamesConfig.AdministrativeActivitiesDStatsNewName);
-      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesDOldName, AdminSheetNamesConfig.AdministrativeActivitiesDNewName);
-      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesHStatsOldName, AdminSheetNamesConfig.AdministrativeActivitiesHStatsNewName);
-      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesHOldName, AdminSheetNamesConfig.AdministrativeActivitiesHNewName);
+      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, 
+        AdminSheetNamesConfig.AdministrativeActivitiesDStatsOldName, AdminSheetNamesConfig.AdministrativeActivitiesDStatsNewName);
+      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, 
+        AdminSheetNamesConfig.AdministrativeActivitiesDOldName, AdminSheetNamesConfig.AdministrativeActivitiesDNewName);
+      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, 
+        AdminSheetNamesConfig.AdministrativeActivitiesHStatsOldName, AdminSheetNamesConfig.AdministrativeActivitiesHStatsNewName);
+      _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, 
+        AdminSheetNamesConfig.AdministrativeActivitiesHOldName, AdminSheetNamesConfig.AdministrativeActivitiesHNewName);
 
       var vacationIllnessSheetName = ExcelService.GetVacationIllnessSheet(sheetsInfo);
       var vacationIllnessStatsSheetName = ExcelService.GetVacationIllnessStatsSheet(sheetsInfo);
