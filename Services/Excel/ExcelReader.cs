@@ -30,9 +30,7 @@ public static class ExcelReader
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
     var sharedStringTable = workbookPart.SharedStringTablePart?.SharedStringTable;
 
-    var tempList = sheetsInfo.ToList();
-
-    foreach (var sheetInfo in tempList)
+    foreach (var sheetInfo in sheetsInfo)
     {
       var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
       if (sheet == null) continue;

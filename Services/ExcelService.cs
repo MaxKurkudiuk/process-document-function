@@ -52,14 +52,12 @@ public static class ExcelService
   public static ReportLogOutData? GetVacationIllnessSheet(IEnumerable<ReportLogOutData> sheetsInfo)
     => sheetsInfo
         .Where(x => !x.IsStats)
-        .Where(x => x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase))
-        .FirstOrDefault();
+        .FirstOrDefault(x => x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase));
 
   public static ReportLogOutData? GetVacationIllnessStatsSheet(IEnumerable<ReportLogOutData> sheetsInfo)
     => sheetsInfo
         .Where(x => x.IsStats)
-        .Where(x => x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase))
-        .FirstOrDefault();
+        .FirstOrDefault(x => x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase));
   
   public static IEnumerable<ReportLogOutData?> GetOtherSheetNames(IEnumerable<ReportLogOutData> sheetsInfo)
     => sheetsInfo

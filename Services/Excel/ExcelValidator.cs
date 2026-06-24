@@ -12,11 +12,6 @@ public class ExcelValidator(ILogger<ExcelValidator> logger)
   {
     try
     {
-      foreach (var item in sheetsInfo)
-      {
-        _logger.LogInformation("Sheet name: {SheetName}", item.SheetName);
-      }
-
       ExcelReader.ReadRawSheetsData(workbookPart, sheetsInfo);
 
       _logger.LogInformation("File {fileName} validation finished successfully", fileName);

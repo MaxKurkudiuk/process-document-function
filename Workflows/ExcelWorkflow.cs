@@ -46,8 +46,8 @@ public class ExcelWorkflow(
       _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesHStatsOldName, AdminSheetNamesConfig.AdministrativeActivitiesHStatsNewName);
       _excelUpdater.ChangeSheetName(workbookPart, sheetsInfo, AdminSheetNamesConfig.AdministrativeActivitiesHOldName, AdminSheetNamesConfig.AdministrativeActivitiesHNewName);
 
-      var vacationIllnessSheetName = ExcelService.GetVacationIllnessSheet(sheetsInfo)?.SheetName;
-      var vacationIllnessStatsSheetName = ExcelService.GetVacationIllnessStatsSheet(sheetsInfo)?.SheetName;
+      var vacationIllnessSheetName = ExcelService.GetVacationIllnessSheet(sheetsInfo);
+      var vacationIllnessStatsSheetName = ExcelService.GetVacationIllnessStatsSheet(sheetsInfo);
       var otherSheetNames = ExcelService.GetOtherSheetNames(sheetsInfo);
       if (vacationIllnessSheetName == null)
         throw new Exception($"Fail to find any sheets with name starts with: {OtherDataConfig.VacationIllnessSheetKey}");

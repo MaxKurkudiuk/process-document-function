@@ -23,19 +23,19 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     _logger.LogInformation("Sheet name changed from '{oldName}' to '{newName}'", oldName, newName);
   }
 
-  public void MoveSheetToTheEnd(WorkbookPart workbookPart, string? sheetName)
+  public void MoveSheetToTheEnd(WorkbookPart workbookPart, ReportLogOutData? sheetInfo)
   {
-    if (string.IsNullOrEmpty(sheetName)) return;
+    if (string.IsNullOrEmpty(sheetInfo?.SheetName)) return;
 
     var sheets = workbookPart.Workbook.Sheets;
     if (sheets == null) return;
 
-    var sheet = sheets.Elements<Sheet>().FirstOrDefault(s => s.Name?.Value == sheetName);
+    var sheet = sheets.Elements<Sheet>().FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
     if (sheet == null) return;
 
     sheet.Remove();
     sheets.Append(sheet);
 
-    _logger.LogInformation("Sheet '{sheetName}' moved to the end.", sheetName);
+    _logger.LogInformation("Sheet '{sheetName}' moved to the end.", sheetInfo.SheetName);
   }
 }
