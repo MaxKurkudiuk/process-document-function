@@ -35,7 +35,7 @@ public class ExcelWorkflow(
       using var doc = SpreadsheetDocument.Open(ms, true);
       var workbookPart = doc.WorkbookPart ?? throw new InvalidOperationException("No workbook part found.");
 
-      var sheetsInfo = ExcelReader.ReadSheets(workbookPart);
+      var sheetsInfo = ExcelReader.ReadSheets(workbookPart).ToList();
 
       var isValid = _excelValidator.Validate(workbookPart, sheetsInfo, file.FileName);
       if (!isValid)
