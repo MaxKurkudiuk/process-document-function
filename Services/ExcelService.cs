@@ -16,6 +16,21 @@ public static class ExcelService
     return columnLetters.Aggregate(0, (a, c) => a * 26 + (c - 'A' + 1)) - 1;
   }
 
+  public static string GetColumnLetter(int columnIndex)
+  {
+    int dividend = columnIndex + 1;
+    string result = "";
+
+    while (dividend > 0)
+    {
+      int modulo = (dividend - 1) % 26;
+      result = (char)('A' + modulo) + result;
+      dividend = (dividend - modulo) / 26;
+    }
+
+    return result;
+  }
+
   public static string GetCellValue(Cell cell, SharedStringTable? sharedStringTable)
   {
     if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
@@ -63,4 +78,15 @@ public static class ExcelService
     => sheetsInfo
         .Where(x => !x.IsStats)
         .Where(x => !x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase));
+  
+  public static bool IsRowValueMatchHeader(string? rowValue, string header, bool startsWith, bool contains)
+  {
+    if (string.IsNullOrEmpty(rowValue)) return false;
+
+    if (startsWith)
+      return rowValue.StartsWith(header, StringComparison.OrdinalIgnoreCase);
+    if (contains)
+      return rowValue.Contains(header, StringComparison.OrdinalIgnoreCase);
+    return rowValue.Equals(header, StringComparison.OrdinalIgnoreCase);
+  }
 }
