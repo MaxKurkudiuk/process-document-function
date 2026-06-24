@@ -23,7 +23,7 @@ public class ExcelWorkflow(
   private readonly VacationIllnesProcess _vacationIllnesProcess = vacationIllnesProcess;
   private readonly OtherSheetsProcess _otherSheetsProcess = otherSheetsProcess;
 
-  public async Task<IActionResult> Execute(IFormFile file)
+  public async Task<IActionResult> Execute(IFormFile file, bool isFormattingOnly)
   {
     using Stream fileStream = file.OpenReadStream();
     using var ms = new MemoryStream();

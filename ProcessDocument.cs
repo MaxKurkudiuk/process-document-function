@@ -28,6 +28,10 @@ public class ProcessDocument(ILogger<ProcessDocument> logger, ExcelWorkflow exce
       return new BadRequestObjectResult("Only .xlsx files are supported.");
     }
 
-    return await _excelWorkflow.Execute(file);
+    bool isFormattingOnly = false;
+    if (req.Form.TryGetValue("isFormattingOnly", out var val))
+      _ = bool.TryParse(val, out isFormattingOnly);
+
+    return await _excelWorkflow.Execute(file, isFormattingOnly);
   }
 }
