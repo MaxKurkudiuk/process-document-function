@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using ProcessDocumentFunction.Models.Constants.Excel;
 using ProcessDocumentFunction.Services.Excel;
+using ProcessDocumentFunction.Services;
 
 namespace ProcessDocumentFunction.Workflows.Excel;
 
@@ -40,6 +41,7 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
         _logger.LogInformation($"FormatingOnly. End process sheet: {sheetInfo.SheetName}");
         continue;
       }
+      sheetInfo.HeaderColumnsDictionary = ExcelService.GetHeaderColumnIndexesRowScope(sheetInfo, headers);
 
       _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
     }

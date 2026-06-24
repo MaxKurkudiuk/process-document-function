@@ -1,6 +1,7 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using ProcessDocumentFunction.Models.Excel;
 using ProcessDocumentFunction.Models.Constants.Excel;
+using System.Text.RegularExpressions;
 
 namespace ProcessDocumentFunction.Services;
 
@@ -73,12 +74,12 @@ public static class ExcelService
     => sheetsInfo
         .Where(x => x.IsStats)
         .FirstOrDefault(x => x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase));
-  
+
   public static IEnumerable<ReportLogOutData?> GetOtherSheetNames(IEnumerable<ReportLogOutData> sheetsInfo)
     => sheetsInfo
         .Where(x => !x.IsStats)
         .Where(x => !x.SheetName.StartsWith(OtherDataConfig.VacationIllnessSheetKey, StringComparison.CurrentCultureIgnoreCase));
-  
+
   public static bool IsRowValueMatchHeader(string? rowValue, string header, bool startsWith, bool contains)
   {
     if (string.IsNullOrEmpty(rowValue)) return false;
@@ -88,5 +89,28 @@ public static class ExcelService
     if (contains)
       return rowValue.Contains(header, StringComparison.OrdinalIgnoreCase);
     return rowValue.Equals(header, StringComparison.OrdinalIgnoreCase);
+  }
+
+  public static Dictionary<string, int> GetHeaderColumnIndexesRowScope(ReportLogOutData sheetInfo, IEnumerable<string> headers)
+  {
+    Dictionary<string, int> indexByHeaderDictionary = [];
+    int columnsCount = sheetInfo.RawData.GetLength(1);
+    for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+    {
+      foreach (string header in headers)
+      {
+        if (sheetInfo.RawData[sheetInfo.HeaderIndex, columnIndex] != null
+            && Regex.Replace(header.Trim().ToLower(), @"\s", "") == 
+              Regex.Replace(sheetInfo.RawData[sheetInfo.HeaderIndex, columnIndex].ToString()!.Trim().ToLower(), @"\s", ""))
+        {
+          if (!indexByHeaderDictionary.ContainsKey(header.Trim()))
+          {
+            indexByHeaderDictionary.Add(header.Trim(), columnIndex);
+            break;
+          }
+        }
+      }
+    }
+    return indexByHeaderDictionary;
   }
 }

@@ -38,6 +38,8 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
       _logger.LogInformation($"FormatingOnly. End process sheet: {sheetInfo.SheetName}");
       return;
     }
+    sheetInfo.HeaderColumnsDictionary = ExcelService.GetHeaderColumnIndexesRowScope(sheetInfo, headers);
+
 
     _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
   }
