@@ -73,4 +73,50 @@ public static class ExcelReader
 
     return data;
   }
+
+  public static int SearchForHeaders(IEnumerable<string> headers, ReportLogOutData baseSheet, bool startsWith, bool contains, out List<string> missingHeaders)
+  {
+    missingHeaders = [];
+    var data = baseSheet.RawData;
+    if (data.Length == 0) return -1;
+
+    int columnsCount = data.GetLength(1);
+    int rowsCount = data.GetLength(0);
+    int headersRowIndex = -1;
+
+    for (int rowIndex = 0; rowIndex < rowsCount; rowIndex++)
+    {
+      List<string> missingHeadersRowScope = [];
+      List<string> rowValues = [];
+
+      for (int columnIndex = 0; columnIndex < columnsCount; columnIndex++)
+      {
+        rowValues.Add(Convert.ToString(data[rowIndex, columnIndex]) ?? "");
+      }
+
+      foreach (string header in headers)
+      {
+        if (!rowValues.Any(rowValue => ExcelService.IsRowValueMatchHeader(rowValue, header, startsWith, contains)))
+        {
+          missingHeadersRowScope.Add(header);
+        }
+      }
+
+      if (missingHeadersRowScope.Count == 0)
+      {
+        headersRowIndex = rowIndex;
+        missingHeaders.Clear();
+        break;
+      }
+      else
+      {
+        if (missingHeaders.Count == 0 || missingHeadersRowScope.Count < missingHeaders.Count)
+        {
+          missingHeaders = missingHeadersRowScope;
+        }
+      }
+    }
+
+    return headersRowIndex;
+  }
 }
