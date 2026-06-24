@@ -23,7 +23,7 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
 
       var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
       var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
-      if (sheet == null) return;
+      if (sheet == null) continue;
 
       var headers = new string[4] { OtherDataConfig.TitleColumnName,
         OtherDataConfig.DateColumnName,
@@ -38,7 +38,7 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
       if (isFormattingOnly)
       {
         _logger.LogInformation($"FormatingOnly. End process sheet: {sheetInfo.SheetName}");
-        return;
+        continue;
       }
 
       _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
