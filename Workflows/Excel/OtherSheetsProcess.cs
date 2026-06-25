@@ -42,8 +42,54 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
         continue;
       }
       sheetInfo.HeaderColumnsDictionary = ExcelService.GetHeaderColumnIndexesRowScope(sheetInfo, headers);
+      var vacationDataList = ExcelService.CollectVacationData(sheetInfo);
+      int columnsCount = sheetInfo.RawData.GetLength(1);
+      ProcessInvalidHours(vacationDataList, workbookPart, sheetInfo.SheetName, columnsCount);
+      ProcessDuplicateRows(vacationDataList, workbookPart, sheetInfo.SheetName, columnsCount);
+      ProcessIncorrectTitles(vacationDataList, workbookPart, sheetInfo.SheetName, columnsCount);
 
       _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
+    }
+  }
+
+  private void ProcessInvalidHours(List<VacationData> vacationDataList, WorkbookPart workbookPart, string sheetName, int columnsCount)
+  {
+    var groups = vacationDataList.GroupBy(x => (x.UserName, x.GetDate())).ToList();
+    foreach (var group in groups)
+    {
+      if (group.Sum(x => x.GetTimeSpent()) > 10)
+      {
+        foreach (var vacationData in group)
+        {
+          _logger.LogWarning($"Sheet: {sheetName}. Incorrect Time Spent (more than 10): {group.Sum(x => x.GetTimeSpent())}. Row: {vacationData.RowIdx}");
+          ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
+        }
+      }
+    }
+  }
+
+  private void ProcessDuplicateRows(List<VacationData> vacationDataList, WorkbookPart workbookPart, string sheetName, int columnsCount)
+  {
+    var groups = vacationDataList.GroupBy(x => (x.Title, x.GetDate(), x.UserName, x.TimeSpent)).ToList();
+    foreach (var group in groups)
+    {
+      if (group.Count() > 1)
+      {
+        foreach (var vacationData in group)
+        {
+          _logger.LogWarning($"Sheet: {sheetName}. Duplicate. Row: {vacationData.RowIdx}");
+          ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
+        }
+      }
+    }
+  }
+
+  private void ProcessIncorrectTitles(List<VacationData> vacationDataList, WorkbookPart workbookPart, string sheetName, int columnsCount)
+  {
+    foreach (var vacationData in vacationDataList.Where(x => OtherSheetsConfig.IncorrectWorkTitles.Any(word => x.Title.Contains(word))))
+    {
+      _logger.LogWarning($"Sheet: {sheetName}. Incorrect title (not work). Row: {vacationData.RowIdx}");
+      ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
     }
   }
 }
