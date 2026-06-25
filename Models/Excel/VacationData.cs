@@ -7,7 +7,12 @@ public class VacationData(int rowIdx, string title, string date, string userName
   public string Date { private get; set; } = date;
   public string UserName { get; set; } = userName;
   public string TimeSpent { get; set; } = timeSpent;
-  public DateTime GetDate() => DateTime.Parse(Date);
+  public DateTime GetDate()
+  {
+    double serial = double.Parse(Date);
+    return DateTime.FromOADate(serial);
+  }
+
   public float GetTimeSpent()
   {
     if (int.TryParse(TimeSpent, out var time))

@@ -1,5 +1,6 @@
 using ProcessDocumentFunction.Models.Excel;
 using ProcessDocumentFunction.Models.Constants.Excel;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Logging;
@@ -103,5 +104,78 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     sheets.Append(sheet);
 
     _logger.LogInformation("Sheet '{sheetName}' moved to the end.", sheetInfo.SheetName);
+  }
+
+  private static Dictionary<string, uint> FormatData = [];
+
+  private static Stylesheet GenerateStylesheet(Stylesheet stylesheet, string colorHex)
+  {
+    // OpenXML requires 2 default fills before custom fills
+    stylesheet.Fills ??= new Fills();
+    if (!stylesheet.Fills.Any())
+    {
+      stylesheet.Fills.Append(new Fill(new PatternFill() { PatternType = PatternValues.None }));
+      stylesheet.Fills.Append(new Fill(new PatternFill() { PatternType = PatternValues.Gray125 }));
+    }
+
+    // Append your red fill
+    stylesheet.Fills.Append(new Fill(new PatternFill(
+        new ForegroundColor() { Rgb = new HexBinaryValue() { Value = $"FF{colorHex}" } }
+    )
+    { PatternType = PatternValues.Solid }));
+    uint redFillIndex = (uint)stylesheet.Fills.Count() - 1;
+
+    // Append the CellFormat referencing our fill
+    stylesheet.CellFormats ??= new CellFormats();
+    stylesheet.CellFormats.Append(new CellFormat() { FillId = redFillIndex, ApplyFill = true });
+    uint formatIndex = (uint)stylesheet.CellFormats.Count() - 1;
+    FormatData.TryAdd(colorHex, formatIndex);
+    stylesheet.Save();
+    return stylesheet;
+  }
+
+  public static void SetRowColor(
+    WorkbookPart workbookPart,
+    string sheetName,
+    uint rowIndex,
+    string colorHex,
+    uint startCol,
+    uint endCol)
+  {
+    rowIndex++;
+    var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
+    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetName);
+    if (sheet == null) return;
+
+    var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);
+    var worksheet = worksheetPart.Worksheet;
+    var sheetData = worksheet.GetFirstChild<SheetData>() ?? worksheet.AppendChild(new SheetData());
+
+    var row = sheetData.Elements<Row>().FirstOrDefault(r => r.RowIndex?.Value == rowIndex);
+    if (row == null) return;
+
+    var stylesPart = workbookPart.GetPartsOfType<WorkbookStylesPart>().FirstOrDefault();
+    if (stylesPart == null || !FormatData.ContainsKey(colorHex))
+    {
+      stylesPart ??= workbookPart.AddNewPart<WorkbookStylesPart>();
+      GenerateStylesheet(stylesPart.Stylesheet, colorHex);
+    }
+
+    // Apply the style index (Analog to your Interop statement)
+    for (uint col = startCol; col <= endCol; col++)
+    {
+      string cellRef = $"{ExcelService.GetColumnLetter((int)col - 1)}{rowIndex}";
+      var cell = row.Elements<Cell>().FirstOrDefault(c => c.CellReference?.Value == cellRef);
+      if (cell == null)
+      {
+        cell = new Cell { CellReference = cellRef };
+        row.Append(cell);
+      }
+      cell.StyleIndex = FormatData[colorHex];
+    }
+    row.CustomFormat = true;
+
+    if (row.Parent == null) sheetData.Append(row);
+    stylesPart.Stylesheet.Save();
   }
 }

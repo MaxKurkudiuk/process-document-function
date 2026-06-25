@@ -100,7 +100,7 @@ public static class ExcelService
       foreach (string header in headers)
       {
         if (sheetInfo.RawData[sheetInfo.HeaderIndex, columnIndex] != null
-            && Regex.Replace(header.Trim().ToLower(), @"\s", "") == 
+            && Regex.Replace(header.Trim().ToLower(), @"\s", "") ==
               Regex.Replace(sheetInfo.RawData[sheetInfo.HeaderIndex, columnIndex].ToString()!.Trim().ToLower(), @"\s", ""))
         {
           if (!indexByHeaderDictionary.ContainsKey(header.Trim()))
@@ -112,5 +112,33 @@ public static class ExcelService
       }
     }
     return indexByHeaderDictionary;
+  }
+
+  public static List<VacationData> CollectVacationData(ReportLogOutData sheetInfo)
+  {
+    var vacationDataList = new List<VacationData>();
+    var titleColumnIdx = sheetInfo.GetColumnNumberByName(OtherDataConfig.TitleColumnName);
+    var dateColumnIdx = sheetInfo.GetColumnNumberByName(OtherDataConfig.DateColumnName);
+    var userNameColumnIdx = sheetInfo.GetColumnNumberByName(OtherDataConfig.UserNameColumnName);
+    var timeSpentColumnIdx = sheetInfo.GetColumnNumberByName(OtherDataConfig.TimeSpentColumnName);
+    int rowsCount = sheetInfo.RawData.GetLength(0);
+    int columnsCount = sheetInfo.RawData.GetLength(1);
+    for (int row = 1; row < rowsCount; row++)
+    {
+      var titleValue = string.IsNullOrEmpty(sheetInfo.RawData[row, titleColumnIdx].ToString()) ? 
+        "" : sheetInfo.RawData[row, titleColumnIdx].ToString()!.Trim();
+      titleValue = new string([.. titleValue.ToLower().Where(x => char.IsLetter(x) || char.IsNumber(x))]);
+      var dateValue = string.IsNullOrEmpty(sheetInfo.RawData[row, dateColumnIdx].ToString()) ? 
+        "" : sheetInfo.RawData[row, dateColumnIdx].ToString()!.Trim();
+      var userNameValue = string.IsNullOrEmpty(sheetInfo.RawData[row, userNameColumnIdx].ToString()) ? 
+        "" : sheetInfo.RawData[row, userNameColumnIdx].ToString()!.Trim();
+      userNameValue = new string([.. userNameValue.ToLower().Where(x => char.IsLetter(x) || char.IsNumber(x))]);
+      string timeSpentValue = "";
+      if (timeSpentColumnIdx > 0)
+        timeSpentValue = string.IsNullOrEmpty(sheetInfo.RawData[row, timeSpentColumnIdx].ToString()) ? 
+          "" : sheetInfo.RawData[row, timeSpentColumnIdx].ToString()!;
+      vacationDataList.Add(new VacationData(row, titleValue, dateValue, userNameValue, timeSpentValue));
+    }
+    return vacationDataList;
   }
 }

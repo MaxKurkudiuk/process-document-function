@@ -9,7 +9,8 @@ public class ReportLogOutData
   public List<string> MissingHeaders { get; set; } = null!;
   public Dictionary<string, int> HeaderColumnsDictionary { get; set; } = null!;
 
-  public int GetColumnNumberByName(string name) => HeaderColumnsDictionary.FirstOrDefault(x => x.Key.Equals(name, StringComparison.CurrentCultureIgnoreCase)).Value;
+  public int GetColumnNumberByName(string name) 
+  => HeaderColumnsDictionary.FirstOrDefault(x => x.Key.Equals(name, StringComparison.CurrentCultureIgnoreCase)).Value;
 
   public bool IsValid { get; set; } = true;
   public bool IsStats { get; set; } = false;

@@ -14,8 +14,8 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
   private readonly ExcelUpdater _excelUpdater = excelUpdater;
 
   public void Execute(
-    WorkbookPart workbookPart, 
-    ReportLogOutData? sheetInfo, 
+    WorkbookPart workbookPart,
+    ReportLogOutData? sheetInfo,
     bool isFormattingOnly)
   {
     if (string.IsNullOrEmpty(sheetInfo?.SheetName)) return;
@@ -39,8 +39,36 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
       return;
     }
     sheetInfo.HeaderColumnsDictionary = ExcelService.GetHeaderColumnIndexesRowScope(sheetInfo, headers);
-
-
+    var vacationDataList = ExcelService.CollectVacationData(sheetInfo);
+    int columnsCount = sheetInfo.RawData.GetLength(1);
+    var groups = vacationDataList.GroupBy(x => (x.UserName, x.GetDate())).ToList();
+    foreach (var group in groups)
+    {
+      if (group.Count() <= 1 && group.Count(x => !IsTitleCorrect(x.Title)) <= 0)
+        continue;
+      foreach (var vacationData in group)
+      {
+        if (group.Count() > 1)
+        {
+          ExcelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
+          _logger.LogWarning($"Sheet: {sheetInfo.SheetName}. Duplicate. Row: {vacationData.RowIdx}");
+        }
+        else if (!IsTitleCorrect(vacationData.Title))
+        {
+          ExcelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
+          _logger.LogWarning($"Sheet: {sheetInfo.SheetName}. Incorrect Title: {vacationData.Title}. Row: {vacationData.RowIdx}");
+        }
+      }
+    }
     _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
+  }
+
+  private bool IsTitleCorrect(string titleValue)
+  {
+    if (string.IsNullOrEmpty(titleValue)) return false;
+    var lettersStr = new string(titleValue.ToLower().Where(char.IsLetter).ToArray());
+    if (lettersStr.Equals("vacation") || lettersStr.Equals("illness") || lettersStr.Equals("dayoff") || lettersStr.Equals("sickday"))
+      return true;
+    return false;
   }
 }
