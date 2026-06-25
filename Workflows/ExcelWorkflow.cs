@@ -64,7 +64,7 @@ public class ExcelWorkflow(
       doc.Save();
 
       ms.Position = 0;
-      var resultFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_result.xlsx";
+      var resultFileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_result_{DateTime.Now:dd.MM.yyyy_hh.mm.ss}.xlsx";
 
       return new FileContentResult(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       {
