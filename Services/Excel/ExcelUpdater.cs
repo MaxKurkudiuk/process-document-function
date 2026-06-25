@@ -108,9 +108,8 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
 
   private static Dictionary<string, uint> FormatData = [];
 
-  private static Stylesheet GenerateStylesheet(Stylesheet stylesheet, string colorHex)
+  private static Stylesheet GenerateStylesheet(Stylesheet stylesheet, string colorHex, uint numberFormatId = 0)
   {
-    // OpenXML requires 2 default fills before custom fills
     stylesheet.Fills ??= new Fills();
     if (!stylesheet.Fills.Any())
     {
@@ -118,20 +117,37 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
       stylesheet.Fills.Append(new Fill(new PatternFill() { PatternType = PatternValues.Gray125 }));
     }
 
-    // Append your red fill
-    stylesheet.Fills.Append(new Fill(new PatternFill(
-        new ForegroundColor() { Rgb = new HexBinaryValue() { Value = $"FF{colorHex}" } }
-    )
-    { PatternType = PatternValues.Solid }));
-    uint redFillIndex = (uint)stylesheet.Fills.Count() - 1;
+    uint fillIndex = GetOrCreateFillIndex(stylesheet, colorHex);
 
-    // Append the CellFormat referencing our fill
     stylesheet.CellFormats ??= new CellFormats();
-    stylesheet.CellFormats.Append(new CellFormat() { FillId = redFillIndex, ApplyFill = true });
+    var cellFormat = new CellFormat() { FillId = fillIndex, ApplyFill = true };
+    if (numberFormatId > 0)
+    {
+      cellFormat.NumberFormatId = numberFormatId;
+      cellFormat.ApplyNumberFormat = true;
+    }
+    stylesheet.CellFormats.Append(cellFormat);
     uint formatIndex = (uint)stylesheet.CellFormats.Count() - 1;
-    FormatData.TryAdd(colorHex, formatIndex);
+    FormatData.TryAdd($"{colorHex}|{numberFormatId}", formatIndex);
     stylesheet.Save();
     return stylesheet;
+  }
+
+  private static uint GetOrCreateFillIndex(Stylesheet stylesheet, string colorHex)
+  {
+    string rgbValue = $"FF{colorHex}";
+    uint i = 0;
+    foreach (var fill in stylesheet.Fills!.Elements<Fill>())
+    {
+      var rgbHex = fill.PatternFill?.ForegroundColor?.Rgb?.Value;
+      if (rgbHex == rgbValue)
+        return i;
+      i++;
+    }
+    stylesheet.Fills.Append(new Fill(new PatternFill(
+        new ForegroundColor() { Rgb = new HexBinaryValue() { Value = rgbValue } }
+    ) { PatternType = PatternValues.Solid }));
+    return (uint)stylesheet.Fills.Count() - 1;
   }
 
   public static void SetRowColor(
@@ -155,13 +171,9 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     if (row == null) return;
 
     var stylesPart = workbookPart.GetPartsOfType<WorkbookStylesPart>().FirstOrDefault();
-    if (stylesPart == null || !FormatData.ContainsKey(colorHex))
-    {
-      stylesPart ??= workbookPart.AddNewPart<WorkbookStylesPart>();
-      GenerateStylesheet(stylesPart.Stylesheet, colorHex);
-    }
+    stylesPart ??= workbookPart.AddNewPart<WorkbookStylesPart>();
+    stylesPart.Stylesheet ??= new Stylesheet();
 
-    // Apply the style index (Analog to your Interop statement)
     for (uint col = startCol; col <= endCol; col++)
     {
       string cellRef = $"{ExcelService.GetColumnLetter((int)col - 1)}{rowIndex}";
@@ -171,11 +183,26 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
         cell = new Cell { CellReference = cellRef };
         row.Append(cell);
       }
-      cell.StyleIndex = FormatData[colorHex];
+
+      uint existingNumberFormatId = 0;
+      if (cell.StyleIndex?.Value != null)
+      {
+        var existingFormat = stylesPart.Stylesheet?.CellFormats?.Elements<CellFormat>()
+            .ElementAtOrDefault((int)cell.StyleIndex.Value);
+        if (existingFormat?.NumberFormatId?.Value > 0 && existingFormat.ApplyNumberFormat?.Value == true)
+          existingNumberFormatId = existingFormat.NumberFormatId.Value;
+      }
+
+      string formatKey = $"{colorHex}|{existingNumberFormatId}";
+      if (!FormatData.ContainsKey(formatKey))
+      {
+        GenerateStylesheet(stylesPart.Stylesheet!, colorHex, existingNumberFormatId);
+      }
+      cell.StyleIndex = FormatData[formatKey];
     }
     row.CustomFormat = true;
 
     if (row.Parent == null) sheetData.Append(row);
-    stylesPart.Stylesheet.Save();
+    stylesPart.Stylesheet!.Save();
   }
 }
