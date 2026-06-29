@@ -35,7 +35,7 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
     ExcelUpdater.SetColumnsWidth(sheetInfo, workbookPart);
     if (isFormattingOnly)
     {
-      _logger.LogInformation($"FormatingOnly. End process sheet: {sheetInfo.SheetName}");
+      _logger.LogInformation("FormatingOnly. End process sheet: {SheetName}", sheetInfo.SheetName);
       return;
     }
     sheetInfo.HeaderColumnsDictionary = ExcelService.GetHeaderColumnIndexesRowScope(sheetInfo, headers);
@@ -50,23 +50,23 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
       {
         if (group.Count() > 1)
         {
-          ExcelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
-          _logger.LogWarning($"Sheet: {sheetInfo.SheetName}. Duplicate. Row: {vacationData.RowIdx}");
+          _excelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
+          _logger.LogWarning("Sheet: {SheetName}. Duplicate. Row: {RowIdx}", sheetInfo.SheetName, vacationData.RowIdx);
         }
         else if (!IsTitleCorrect(vacationData.Title))
         {
-          ExcelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
-          _logger.LogWarning($"Sheet: {sheetInfo.SheetName}. Incorrect Title: {vacationData.Title}. Row: {vacationData.RowIdx}");
+          _excelUpdater.SetRowColor(workbookPart, sheetInfo.SheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
+          _logger.LogWarning("Sheet: {SheetName}. Incorrect Title: {Title}. Row: {RowIdx}", sheetInfo.SheetName, vacationData.Title, vacationData.RowIdx);
         }
       }
     }
-    _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
+    _logger.LogInformation("End process sheet: {SheetName}", sheetInfo.SheetName);
   }
 
   private bool IsTitleCorrect(string titleValue)
   {
     if (string.IsNullOrEmpty(titleValue)) return false;
-    var lettersStr = new string(titleValue.ToLower().Where(char.IsLetter).ToArray());
+    var lettersStr = new string([.. titleValue.ToLower().Where(char.IsLetter)]);
     if (lettersStr.Equals("vacation") || lettersStr.Equals("illness") || lettersStr.Equals("dayoff") || lettersStr.Equals("sickday"))
       return true;
     return false;

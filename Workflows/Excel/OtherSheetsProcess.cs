@@ -8,9 +8,10 @@ using ProcessDocumentFunction.Services;
 
 namespace ProcessDocumentFunction.Workflows.Excel;
 
-public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
+public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger, ExcelUpdater excelUpdater)
 {
   private readonly ILogger<OtherSheetsProcess> _logger = logger;
+  private readonly ExcelUpdater _excelUpdater = excelUpdater;
 
   public void Execute(
     WorkbookPart workbookPart,
@@ -48,7 +49,7 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
       ProcessDuplicateRows(vacationDataList, workbookPart, sheetInfo.SheetName, columnsCount);
       ProcessIncorrectTitles(vacationDataList, workbookPart, sheetInfo.SheetName, columnsCount);
 
-      _logger.LogInformation($"End process sheet: {sheetInfo.SheetName}");
+      _logger.LogInformation("End process sheet: {SheetName}", sheetInfo.SheetName);
     }
   }
 
@@ -61,8 +62,9 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
       {
         foreach (var vacationData in group)
         {
-          _logger.LogWarning($"Sheet: {sheetName}. Incorrect Time Spent (more than 10): {group.Sum(x => x.GetTimeSpent())}. Row: {vacationData.RowIdx}");
-          ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
+          _logger.LogWarning("Sheet: {sheetName}. Incorrect Time Spent (more than 10): {sum}. Row: {RowIdx}", 
+            sheetName, group.Sum(x => x.GetTimeSpent()), vacationData.RowIdx);
+          _excelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "F4B084", 1, (uint)columnsCount);
         }
       }
     }
@@ -77,8 +79,8 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
       {
         foreach (var vacationData in group)
         {
-          _logger.LogWarning($"Sheet: {sheetName}. Duplicate. Row: {vacationData.RowIdx}");
-          ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
+          _logger.LogWarning("Sheet: {sheetName}. Duplicate. Row: {RowIdx}", sheetName, vacationData.RowIdx);
+          _excelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
         }
       }
     }
@@ -88,8 +90,8 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger)
   {
     foreach (var vacationData in vacationDataList.Where(x => OtherSheetsConfig.IncorrectWorkTitles.Any(word => x.Title.Contains(word))))
     {
-      _logger.LogWarning($"Sheet: {sheetName}. Incorrect title (not work). Row: {vacationData.RowIdx}");
-      ExcelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
+      _logger.LogWarning("Sheet: {sheetName}. Incorrect title (not work). Row: {RowIdx}", sheetName, vacationData.RowIdx);
+      _excelUpdater.SetRowColor(workbookPart, sheetName, (uint)vacationData.RowIdx, "FF0000", 1, (uint)columnsCount);
     }
   }
 }

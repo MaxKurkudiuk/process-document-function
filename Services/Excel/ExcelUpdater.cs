@@ -106,9 +106,9 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     _logger.LogInformation("Sheet '{sheetName}' moved to the end.", sheetInfo.SheetName);
   }
 
-  private static Dictionary<string, uint> FormatData = [];
+  private Dictionary<string, uint> FormatData = [];
 
-  private static Stylesheet GenerateStylesheet(Stylesheet stylesheet, string colorHex, uint numberFormatId = 0)
+  private Stylesheet GenerateStylesheet(Stylesheet stylesheet, string colorHex, uint numberFormatId = 0)
   {
     stylesheet.Fills ??= new Fills();
     if (!stylesheet.Fills.Any())
@@ -133,7 +133,7 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     return stylesheet;
   }
 
-  private static uint GetOrCreateFillIndex(Stylesheet stylesheet, string colorHex)
+  private uint GetOrCreateFillIndex(Stylesheet stylesheet, string colorHex)
   {
     string rgbValue = $"FF{colorHex}";
     uint i = 0;
@@ -150,7 +150,7 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     return (uint)stylesheet.Fills.Count() - 1;
   }
 
-  public static void SetRowColor(
+  public void SetRowColor(
     WorkbookPart workbookPart,
     string sheetName,
     uint rowIndex,
