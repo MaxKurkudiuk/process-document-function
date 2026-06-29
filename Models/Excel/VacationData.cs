@@ -9,8 +9,11 @@ public class VacationData(int rowIdx, string title, string date, string userName
   public string TimeSpent { get; set; } = timeSpent;
   public DateTime GetDate()
   {
-    double serial = double.Parse(Date);
-    return DateTime.FromOADate(serial);
+    if (double.TryParse(Date, System.Globalization.NumberStyles.Any,
+        System.Globalization.CultureInfo.InvariantCulture, out double serial))
+      return DateTime.FromOADate(serial);
+
+    return DateTime.Parse(Date, System.Globalization.CultureInfo.InvariantCulture);
   }
 
   public float GetTimeSpent()
