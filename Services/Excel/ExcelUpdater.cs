@@ -43,7 +43,11 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     if (autoFilter == null)
     {
       autoFilter = new AutoFilter();
-      worksheet.Append(autoFilter);
+      var sheetData = worksheet.GetFirstChild<SheetData>();
+      if (sheetData != null)
+        worksheet.InsertAfter(autoFilter, sheetData);
+      else
+        worksheet.Append(autoFilter);
     }
     autoFilter.Reference = $"A{headerRow}:{lastCol}{headerRow}";
   }
@@ -65,7 +69,11 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     if (columns == null)
     {
       columns = new Columns();
-      worksheet.InsertAt(columns, 0);
+      var sheetData = worksheet.GetFirstChild<SheetData>();
+      if (sheetData != null)
+        worksheet.InsertBefore(columns, sheetData);
+      else
+        worksheet.Append(columns);
     }
 
     int maxCol = Math.Min(columnsCount, SheetSizeConfig.GetColumnsWidthInReqOrder().Length);
