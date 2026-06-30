@@ -14,14 +14,63 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
   public void ChangeSheetName(WorkbookPart workbookPart, IEnumerable<ReportLogOutData> sheetsInfo, string oldName, string newName)
   {
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == oldName);
+    var sheet = sheets.FirstOrDefault(s =>
+      string.Equals(s.Name?.Value, oldName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     sheet.Name = newName;
 
-    var entry = sheetsInfo.FirstOrDefault(s => s.SheetName == oldName);
+    var entry = sheetsInfo.FirstOrDefault(s =>
+      string.Equals(s.SheetName, oldName, StringComparison.OrdinalIgnoreCase));
     entry?.SheetName = newName;
+
+    UpdateOldNameReferences(workbookPart, oldName, newName);
+
     _logger.LogInformation("Sheet name changed from '{oldName}' to '{newName}'", oldName, newName);
+  }
+
+  private static void UpdateOldNameReferences(WorkbookPart workbookPart, string oldName, string newName)
+  {
+    var definedNames = workbookPart.Workbook.DefinedNames;
+    if (definedNames != null)
+    {
+      foreach (var definedName in definedNames.OfType<DefinedName>())
+      {
+        if (definedName.Text == null) continue;
+
+        definedName.Text = ReplaceSheetReference(definedName.Text, oldName, newName);
+      }
+    }
+
+    foreach (var tableDefPart in workbookPart.GetPartsOfType<TableDefinitionPart>())
+    {
+      var table = tableDefPart.Table;
+      if (table == null) continue;
+
+      if (table.DisplayName?.Value != null &&
+        table.DisplayName.Value.Contains(oldName, StringComparison.OrdinalIgnoreCase))
+      {
+        table.DisplayName = ReplaceSheetReference(table.DisplayName.Value, oldName, newName);
+      }
+
+      if (table.Name?.Value != null && table.Name.Value.Contains(oldName, StringComparison.OrdinalIgnoreCase))
+        table.Name = ReplaceSheetReference(table.Name.Value, oldName, newName);
+    }
+  }
+
+  private static string ReplaceSheetReference(string text, string oldName, string newName)
+  {
+    string quotedOld = $"'{oldName}'";
+    string quotedNew = $"'{newName}'";
+
+    int idx = text.IndexOf(quotedOld, StringComparison.OrdinalIgnoreCase);
+    if (idx < 0)
+    {
+      idx = text.IndexOf(oldName, StringComparison.OrdinalIgnoreCase);
+      if (idx < 0) return text;
+    }
+
+    return text.Replace(quotedOld, quotedNew).Replace(oldName, newName);
   }
 
   public static void SetHeadersFilter(ReportLogOutData sheetInfo, WorkbookPart workbookPart)
@@ -29,7 +78,8 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     if (sheetInfo == null || sheetInfo.HeaderIndex < 0 || sheetInfo.RawData.Length == 0) return;
 
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+    var sheet = sheets.FirstOrDefault(s => 
+      string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);
@@ -59,7 +109,8 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     if (columnsCount == 0) return;
 
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+    var sheet = sheets.FirstOrDefault(s => 
+      string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);
@@ -105,7 +156,8 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     var sheets = workbookPart.Workbook.Sheets;
     if (sheets == null) return;
 
-    var sheet = sheets.Elements<Sheet>().FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+    var sheet = sheets.Elements<Sheet>()
+      .FirstOrDefault(s => string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     sheet.Remove();
@@ -176,7 +228,7 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
   {
     rowIndex++;
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetName);
+    var sheet = sheets.FirstOrDefault(s => string.Equals(s.Name?.Value, sheetName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);

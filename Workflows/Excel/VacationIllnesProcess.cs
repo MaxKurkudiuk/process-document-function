@@ -23,7 +23,8 @@ public class VacationIllnesProcess(ILogger<VacationIllnesProcess> logger, ExcelU
     _logger.LogInformation("Start process sheet: {SheetName}", sheetInfo.SheetName);
 
     var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-    var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+    var sheet = sheets.FirstOrDefault(s => 
+      string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
     if (sheet == null) return;
 
     var headers = new string[3] { OtherDataConfig.TitleColumnName, OtherDataConfig.DateColumnName, OtherDataConfig.UserNameColumnName };

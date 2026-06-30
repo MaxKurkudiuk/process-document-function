@@ -32,7 +32,8 @@ public static class ExcelReader
 
     foreach (var sheetInfo in sheetsInfo)
     {
-      var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+      var sheet = sheets.FirstOrDefault(s => 
+        string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
       if (sheet == null) continue;
 
       var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!);

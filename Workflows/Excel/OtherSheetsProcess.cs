@@ -24,7 +24,8 @@ public class OtherSheetsProcess(ILogger<OtherSheetsProcess> logger, ExcelUpdater
       _logger.LogInformation("Start process sheet: {SheetName}", sheetInfo.SheetName);
 
       var sheets = workbookPart.Workbook.Sheets?.OfType<Sheet>() ?? [];
-      var sheet = sheets.FirstOrDefault(s => s.Name?.Value == sheetInfo.SheetName);
+      var sheet = sheets.FirstOrDefault(s => 
+        string.Equals(s.Name?.Value, sheetInfo.SheetName, StringComparison.OrdinalIgnoreCase));
       if (sheet == null) continue;
 
       var headers = new string[4] { OtherDataConfig.TitleColumnName,
