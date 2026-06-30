@@ -267,3 +267,7 @@ __pycache__/
 __azurite_db_*.json
 __blobstorage__/
 __queuestorage__/
+
+# Script input / output directories
+Input/
+Outputs/
