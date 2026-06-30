@@ -197,7 +197,13 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
       if (cell == null)
       {
         cell = new Cell { CellReference = cellRef };
-        row.Append(cell);
+        var nextCell = row.Elements<Cell>()
+          .FirstOrDefault(c => string.Compare(
+            c.CellReference?.Value, cellRef, StringComparison.Ordinal) > 0);
+        if (nextCell != null)
+          row.InsertBefore(cell, nextCell);
+        else
+          row.Append(cell);
       }
 
       uint existingNumberFormatId = 0;
