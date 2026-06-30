@@ -128,7 +128,14 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     uint fillIndex = GetOrCreateFillIndex(stylesheet, colorHex);
 
     stylesheet.CellFormats ??= new CellFormats();
-    var cellFormat = new CellFormat() { FillId = fillIndex, ApplyFill = true };
+    var cellFormat = new CellFormat()
+    {
+      FontId = 0,
+      FillId = fillIndex,
+      BorderId = 0,
+      FormatId = 0,
+      ApplyFill = true
+    };
     if (numberFormatId > 0)
     {
       cellFormat.NumberFormatId = numberFormatId;
@@ -154,7 +161,8 @@ public class ExcelUpdater(ILogger<ExcelUpdater> logger)
     }
     stylesheet.Fills.Append(new Fill(new PatternFill(
         new ForegroundColor() { Rgb = new HexBinaryValue() { Value = rgbValue } }
-    ) { PatternType = PatternValues.Solid }));
+    )
+    { PatternType = PatternValues.Solid }));
     return (uint)stylesheet.Fills.Count() - 1;
   }
 
